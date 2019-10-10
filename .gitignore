@@ -1,7 +1,7 @@
 .DS_Store
 .idea/
-.eslintrc.json
-.stylelintrc
+onboarding/.eslintrc.json
+onboarding/.stylelintrc
 package-lock.json
 yarn.lock
 package.json
