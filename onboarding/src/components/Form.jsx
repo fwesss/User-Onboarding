@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import axios from 'axios';
 import { withFormik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 
@@ -127,8 +129,29 @@ const FormikLoginForm = withFormik({
   }),
 
   handleSubmit(values) {
-    console.log(values);
+    axios
+      .post('https://reqres.in/api/users', values)
+      .then((result) => {
+        console.log(result.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   },
 })(LoginForm);
+
+LoginForm.propTypes = {
+  isValid: PropTypes.bool.isRequired,
+  errors: PropTypes.shape({
+    name: PropTypes.string,
+    email: PropTypes.string,
+    password: PropTypes.string,
+  }).isRequired,
+  touched: PropTypes.shape({
+    name: PropTypes.bool,
+    email: PropTypes.bool,
+    password: PropTypes.bool,
+  }).isRequired,
+};
 
 export default FormikLoginForm;
