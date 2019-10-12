@@ -12,9 +12,7 @@ const LoginForm = ({
   const [checked, setChecked] = useState(false);
 
   const submit = useCallback(() => {
-    if (!isValid) {
-      setModalActive('is-active');
-    } else {
+    if (isValid) {
       axios
         .post('https://reqres.in/api/users', values)
         .then((result) => addUser([...userList, result.data]))
@@ -28,6 +26,8 @@ const LoginForm = ({
         tos: false,
       });
       setChecked(false);
+    } else {
+      setModalActive('is-active');
     }
   }, [addUser, isValid, resetForm, userList, values]);
 
