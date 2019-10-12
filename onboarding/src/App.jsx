@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
+
 import FormikLoginForm from './components/Form';
+import UserList from './components/UserList';
 
 
-function App() {
+const App = () => {
+  const [userList, addUser] = useState([]);
+
   return (
-    <FormikLoginForm />
+    <>
+      <UserList userList={userList} />
+      <FormikLoginForm addUser={addUser} userList={userList} />
+    </>
   );
-}
+};
 
 export default App;

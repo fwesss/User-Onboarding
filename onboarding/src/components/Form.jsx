@@ -1,16 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { withFormik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 
 
-const LoginForm = ({ isValid, errors, touched }) => {
+const LoginForm = ({
+  addUser, errors, isValid, touched, userList, values, resetForm,
+}) => {
   const [modalActive, setModalActive] = useState('');
+  const [checked, setChecked] = useState(false);
+
+  const submit = useCallback(() => {
+    if (!isValid) {
+      setModalActive('is-active');
+    } else {
+      axios
+        .post('https://reqres.in/api/users', values)
+        .then((result) => addUser([...userList, result.data]))
+        .catch((error) => {
+          console.log(error);
+        });
+      resetForm({
+        name: '',
+        email: '',
+        password: '',
+        tos: false,
+      });
+      setChecked(false);
+    }
+  }, [addUser, isValid, resetForm, userList, values]);
 
   return (
     <section className="section">
-      <div className="container columns is-centered">
+      <div className="columns is-centered">
         <div className={`modal ${modalActive}`}>
           <div className="modal-background" />
           <div className="modal-content">
@@ -29,13 +52,14 @@ const LoginForm = ({ isValid, errors, touched }) => {
                   {touched.name && errors.name && <li>{errors.name}</li>}
                   {touched.email && errors.email && <li>{errors.email}</li>}
                   {touched.password && errors.password && <li>{errors.password}</li>}
+                  {touched.tos && errors.tos && <li>{errors.tos}</li>}
                 </ul>
               </div>
             </article>
           </div>
         </div>
 
-        <Form className="column is-4">
+        <Form className="column is-3">
           <div className="field">
             <div className="control">
               <Field
@@ -43,6 +67,7 @@ const LoginForm = ({ isValid, errors, touched }) => {
                 type="text"
                 name="name"
                 placeholder="Name"
+                autoComplete="on"
               />
             </div>
           </div>
@@ -54,6 +79,7 @@ const LoginForm = ({ isValid, errors, touched }) => {
                 type="email"
                 name="email"
                 placeholder="Email"
+                autoComplete="on"
               />
             </div>
           </div>
@@ -65,6 +91,7 @@ const LoginForm = ({ isValid, errors, touched }) => {
                 type="password"
                 name="password"
                 placeholder="password"
+                autoComplete="on"
               />
             </div>
           </div>
@@ -78,10 +105,13 @@ const LoginForm = ({ isValid, errors, touched }) => {
                 <Field
                   type="checkbox"
                   name="tos"
+                  checked={checked}
+                  onClick={() => (setChecked(!checked))}
                 />
                 {' '}
                 I agree to the
                 {' '}
+                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                 <a href="#">terms and conditions</a>
               </label>
             </div>
@@ -92,7 +122,7 @@ const LoginForm = ({ isValid, errors, touched }) => {
               <button
                 className="button is-primary"
                 type="submit"
-                onClick={() => (!isValid ? setModalActive('is-active') : setModalActive(''))}
+                onClick={submit}
               >
                 Submit
               </button>
@@ -118,7 +148,7 @@ const FormikLoginForm = withFormik({
 
   validationSchema: Yup.object().shape({
     name: Yup.string()
-      .matches(/^[a-zA-Z]+$/, 'Name must have only letters')
+      .matches(/[a-z\s]/gi, 'Name must have only letters')
       .required('Name is required'),
     email: Yup.string()
       .email('Email must be valid')
@@ -126,18 +156,11 @@ const FormikLoginForm = withFormik({
     password: Yup.string()
       .min(8, 'Password must be at least 8 characters long')
       .required('Password is required'),
+    tos: Yup.bool()
+      .oneOf([true], 'You must agree to our terms and conditions before signing up'),
   }),
 
-  handleSubmit(values) {
-    axios
-      .post('https://reqres.in/api/users', values)
-      .then((result) => {
-        console.log(result.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  },
+  handleSubmit() {},
 })(LoginForm);
 
 LoginForm.propTypes = {
@@ -146,12 +169,24 @@ LoginForm.propTypes = {
     name: PropTypes.string,
     email: PropTypes.string,
     password: PropTypes.string,
+    tos: PropTypes.string,
   }).isRequired,
   touched: PropTypes.shape({
     name: PropTypes.bool,
     email: PropTypes.bool,
     password: PropTypes.bool,
+    tos: PropTypes.bool,
   }).isRequired,
+  addUser: PropTypes.func.isRequired,
+  userList: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+      email: PropTypes.string,
+      password: PropTypes.string,
+    }),
+  ).isRequired,
+  values: PropTypes.shape().isRequired,
+  resetForm: PropTypes.func.isRequired,
 };
 
 export default FormikLoginForm;
